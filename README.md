@@ -1,6 +1,6 @@
 # Project 1 - 2020 Fall Machine Learning (CS-433)
 
-[Full assignment guidelines here](https://github.com/epfml/ML_course/blob/master/projects/project1/project1_description.pdf)
+[Full assignment guideline pdf here](https://github.com/epfml/ML_course/blob/master/projects/project1/project1_description.pdf)
 
 ## Dataset
 [Dataset available here](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs). To load the data, use the same code we used during the labs. You can find an example of a .csv loading function in our provided template code from labs 1 and 2.
