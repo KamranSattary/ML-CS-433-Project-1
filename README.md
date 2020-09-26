@@ -66,7 +66,11 @@ Higgs boson (signal) or some other process/particle (background). In practice, t
 a vector of features representing the decay signature of a collision event, and asked to predict whether this event
 was signal (a Higgs boson) or background (something else). To do this, you will use the binary classification
 techniques we have discussed in the lectures.
+
 If you’re interested in more background on this dataset, we point you to the longer description here:
 https://higgsml.lal.in2p3.fr/files/2014/04/documentation_v1.8.pdf.
+
 Note that understanding the physics background is not necessary to perform well in this machine learning challenge
 as part of the course.
+
+
