@@ -109,3 +109,8 @@ ENV/
 
 #Unzipped data
 data/
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/ML-CS-433-Project-1.iml
