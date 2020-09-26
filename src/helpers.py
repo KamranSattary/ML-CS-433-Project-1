@@ -9,6 +9,3 @@ def load_data(path_dataset='./data/',sub_sample=True):
         pass
 
     return None
-
-
-data[1]
