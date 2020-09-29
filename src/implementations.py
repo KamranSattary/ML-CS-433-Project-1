@@ -16,12 +16,11 @@ def compute_mae(e):
 
 def compute_loss(y, tx, w, loss_function=compute_mse):
     """
-    Wrapper for the mse & mae computations, calculate e
-    and then use either mse or mae
+    Wrapper for the mse & mae cost computations, calculates e and then returns either mse (default) or mae
     :param y: (n,) array
     :param tx: (n,d) matrix
     :param w: (d,) array
-    :param loss_function: function to use to compute the loss, compute_mse and compute_mae currently supported
+    :param loss_function: function to use to compute the loss, compute_mse (default) and compute_mae currently supported
     :return: computed cost using mean squared error or mean absolute error
     """
     e = y-tx.dot(w)
