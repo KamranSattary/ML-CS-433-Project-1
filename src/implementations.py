@@ -34,7 +34,7 @@ def compute_gradient_mse(y, tx, w):
     :param w: (d,) array of initial weights
     :return: (d,) array of computed gradient
     """
-    data_size = len(y)
+    data_size = tx.shape[0]
     e = y - tx @ w
     grd = - tx.T @ e / data_size
     return grd, e
@@ -94,3 +94,27 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
             bi=n_iter, ti=max_iters - 1, l=loss, w0=w[0], w1=w[1]))
 
     return losses, ws
+
+def least_squares(y, tx):
+    """
+    Least squares regression solver using normal equations
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :return: loss(mse), optimal weights vector
+    """
+    A = tx.T @ tx
+    b = tx.T @ y
+    w = np.linalg.solve(A,b)
+    return compute_loss(y, tx, w, compute_mse), w
+
+def ridge_regression(y, tx, lambda_):
+    """
+    Ridge regression solver using normal equations
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :return: loss(mse), optimal weights vector
+    """
+    A = tx.T @ tx + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
+    b = tx.T @ y
+    w = np.linalg.solve(A,b)
+    return compute_loss(y, tx, w, compute_mse), w
