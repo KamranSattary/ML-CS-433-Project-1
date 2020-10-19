@@ -142,7 +142,7 @@ def compute_sigmoid(xw):
 
     return 1 / (1 + np.exp(-xw))
 
-def neg_log_loss(y, tx, w):
+def log_likelihood(y, tx, w):
 
     """
     Compute the negative log likelihood loss
@@ -151,9 +151,8 @@ def neg_log_loss(y, tx, w):
     :param w: (d,) array of weights
     :return: computed loss given by negative log likelihood
     """
-
-
-
+    xw = tx.T @ w
+    return np.sum(np.log(1 + np.exp(xw)) -  y @ xw)
 
 def compute_gradient_sigmoid(y, tx, w):
 
@@ -191,7 +190,7 @@ def logistic_regression(y, tx, initial w, max iters, gamma):
         grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
         # update step
         w = w - grd * gamma
-        loss = neg_log_loss(y, tx, w)
+        loss = log_likelihood(y, tx, w)
         print(f"Step loss: {loss}")
 
     return w, loss
