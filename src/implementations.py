@@ -169,8 +169,7 @@ def compute_gradient_sigmoid(y, tx, w):
 
     return grd, e
 
-# still requires loss calculation
-def logistic_regression(y, tx, initial w, max iters, gamma):
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     """
     Logistic regression using SGD
@@ -195,5 +194,30 @@ def logistic_regression(y, tx, initial w, max iters, gamma):
 
     return w, loss
 
+# needs to be adapted for regularization, maybe add a parameter to the compute gradient with
+# penalty = 'l1' or None options
+def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
+    """
+    Logistic regression using SGD
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param intial_w: (d,) array of initial weights
+    :param max_iters: int indicating maximum iterations
+    :param gamma: float indicating learning rate
+    :return: optimal weights vector, loss(mse)
+    """
+
+    w = initial_w
+    # uniform picking of minibatch of a single datapoint in this case
+    for n_iter in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+        # retrieve gradient and cost
+        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+        # update step
+        w = w - grd * gamma
+        loss = log_likelihood(y, tx, w)
+        print(f"Step loss: {loss}")
+
+    return w, loss
 
