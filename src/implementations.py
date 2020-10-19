@@ -38,14 +38,14 @@ def compute_gradient_mse(y, tx, w):
     :param y: (n,) array
     :param tx: (n,d) matrix
     :param w: (d,) array of initial weights
-    :return: (d,) array of computed gradient
+    :return: (d,) array of computed vector
     """
     
     data_size = tx.shape[0]
     e = y - tx @ w
     grd = - tx.T @ e / data_size
     
-    return grd
+    return grd, e
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     
@@ -56,20 +56,21 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     :param intial_w: (d,) array of initial weights
     :param max_iters: int indicating maximum iterations
     :param gamma: float indicating learning rate
-    :return: final loss and weight
+    :return: final loss and weights vector
     """
     
     w = initial_w
     for n_iter in range(max_iters):
         # retrieve gradient and cost
-        grd = compute_gradient_mse(y, tx, w)
+        grd, e = compute_gradient_mse(y, tx, w)
         # update step
         w = w - grd * gamma
+        print(f"Step loss: {compute_mse(e)}")
         
     #calculate the final loss
     loss = compute_loss(y, tx, w, compute_mse)
     
-    return loss, w
+    return w, loss
 
 def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     
@@ -80,7 +81,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     :param intial_w: (d,) array of initial weights
     :param max_iters: int indicating maximum iterations
     :param gamma: float indicating learning rate
-    :return: final loss and weight
+    :return: final loss and weights vector
     """
     
     w = initial_w
@@ -88,14 +89,15 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
         # retrieve gradient and cost
-        grd = compute_gradient_mse(minibatch_y, minibatch_tx, w)
+        grd, e = compute_gradient_mse(minibatch_y, minibatch_tx, w)
         # update step
         w = w - grd * gamma
-        
+        print(f"Step loss: {compute_mse(e)}")
+
     #calculate the final loss    
     loss = compute_loss(y, tx, w, compute_mse)
     
-    return loss, w
+    return w, loss
 
 def least_squares(y, tx):
     
@@ -109,8 +111,9 @@ def least_squares(y, tx):
     A = tx.T @ tx
     b = tx.T @ y
     w = np.linalg.solve(A,b)
-    
-    return compute_loss(y, tx, w, compute_mse), w
+    loss = compute_loss(y, tx, w, compute_mse)
+
+    return w, loss
 
 def ridge_regression(y, tx, lambda_):
     
@@ -124,5 +127,64 @@ def ridge_regression(y, tx, lambda_):
     A = tx.T @ tx + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
     b = tx.T @ y
     w = np.linalg.solve(A,b)
-    
-    return compute_loss(y, tx, w, compute_mse), w
+    loss = compute_loss(y, tx, w, compute_mse)
+
+    return w, loss
+
+
+def compute_sigmoid(xw):
+
+    """
+    Computes sigmoid of input vector
+    :param xw: (n,) array input to be sigmoid transformed
+    :return: (n,) sigmoid-transformed vector
+    """
+
+    return 1 / (1 + np.exp(-xw))
+
+
+def compute_gradient_sigmoid(y, tx, w):
+
+    """
+    Compute sigmoid gradient
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param w: (d,) array of initial weights
+    :return: (d,) array of computed vector
+    """
+
+    e = compute_sigmoid(tx @ w) - y
+    grd = tx.T @ e
+
+    return grd, e
+
+# still requires loss calculation
+def logistic_regression(y, tx, initial w, max iters, gamma):
+
+    """
+    Logistic regression using SGD
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param intial_w: (d,) array of initial weights
+    :param max_iters: int indicating maximum iterations
+    :param gamma: float indicating learning rate
+    :return: loss(mse), optimal weights vector
+    """
+
+    w = initial_w
+    # uniform picking of minibatch of a single datapoint in this case
+    for n_iter in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+        # retrieve gradient and cost
+        grd, e = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+        # update step
+        w = w - grd * gamma
+        print(f"Step loss: {compute_mse(e)}")
+
+    # calculate the final loss
+    loss = compute_loss(y, tx, w, compute_mse)
+
+    return w, loss
+
+
+
