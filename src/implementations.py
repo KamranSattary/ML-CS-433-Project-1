@@ -56,7 +56,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     :param intial_w: (d,) array of initial weights
     :param max_iters: int indicating maximum iterations
     :param gamma: float indicating learning rate
-    :return: final loss and weights vector
+    :return: final weights vector and loss
     """
     
     w = initial_w
@@ -81,7 +81,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     :param intial_w: (d,) array of initial weights
     :param max_iters: int indicating maximum iterations
     :param gamma: float indicating learning rate
-    :return: final loss and weights vector
+    :return: final weights vector and loss
     """
     
     w = initial_w
@@ -105,7 +105,7 @@ def least_squares(y, tx):
     Least squares regression solver using normal equations
     :param y: (n,) array
     :param tx: (n,d) matrix
-    :return: loss(mse), optimal weights vector
+    :return: optimal weights vector, loss(mse)
     """
     
     A = tx.T @ tx
@@ -142,6 +142,18 @@ def compute_sigmoid(xw):
 
     return 1 / (1 + np.exp(-xw))
 
+def neg_log_loss(y, tx, w):
+
+    """
+    Compute the negative log likelihood loss
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param w: (d,) array of weights
+    :return: computed loss given by negative log likelihood
+    """
+
+
+
 
 def compute_gradient_sigmoid(y, tx, w):
 
@@ -150,7 +162,7 @@ def compute_gradient_sigmoid(y, tx, w):
     :param y: (n,) array
     :param tx: (n,d) matrix
     :param w: (d,) array of initial weights
-    :return: (d,) array of computed vector
+    :return: (d,) array of computed gradient vector
     """
 
     e = compute_sigmoid(tx @ w) - y
@@ -168,7 +180,7 @@ def logistic_regression(y, tx, initial w, max iters, gamma):
     :param intial_w: (d,) array of initial weights
     :param max_iters: int indicating maximum iterations
     :param gamma: float indicating learning rate
-    :return: loss(mse), optimal weights vector
+    :return: optimal weights vector, loss(mse)
     """
 
     w = initial_w
@@ -176,13 +188,11 @@ def logistic_regression(y, tx, initial w, max iters, gamma):
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
         # retrieve gradient and cost
-        grd, e = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
         # update step
         w = w - grd * gamma
-        print(f"Step loss: {compute_mse(e)}")
-
-    # calculate the final loss
-    loss = compute_loss(y, tx, w, compute_mse)
+        loss = neg_log_loss(y, tx, w)
+        print(f"Step loss: {loss}")
 
     return w, loss
 
