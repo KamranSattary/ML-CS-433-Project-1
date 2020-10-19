@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 # didnt find how to load from zip with just numpy?
 def load_data(path_dataset='../data/', standardize = True):
 

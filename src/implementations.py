@@ -1,3 +1,8 @@
+import numpy as np
+
+from helpers import batch_iter
+
+
 def compute_mse(e):
     
     """
@@ -5,8 +10,8 @@ def compute_mse(e):
     :param e: (n,) array consisting of the error term
     :return: computed cost using mean squared error
     """
-    
     return 1/2*np.mean(e**2)
+
 
 def compute_mae(e):
     
@@ -17,6 +22,7 @@ def compute_mae(e):
     """
     
     return np.mean(np.abs(e))
+
 
 def compute_loss(y, tx, w, loss_function=compute_mse):
     
@@ -30,6 +36,7 @@ def compute_loss(y, tx, w, loss_function=compute_mse):
     """
     
     return loss_function(y - tx @ w)
+
 
 def compute_gradient_mse(y, tx, w):
     
@@ -47,8 +54,8 @@ def compute_gradient_mse(y, tx, w):
     
     return grd, e
 
+
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
-    
     """
     Gradient descent (MSE) implementation with linear regression
     :param y: (n,) array
@@ -72,6 +79,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     
     return w, loss
 
+
 def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     
     """
@@ -88,16 +96,17 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd, e = compute_gradient_mse(minibatch_y, minibatch_tx, w)
-        # update step
-        w = w - grd * gamma
-        print(f"Step loss: {compute_mse(e)}")
+            # retrieve gradient and cost
+            grd, e = compute_gradient_mse(minibatch_y, minibatch_tx, w)
+            # update step
+            w = w - grd * gamma
+            print(f"Step loss: {compute_mse(e)}")
 
     #calculate the final loss    
     loss = compute_loss(y, tx, w, compute_mse)
     
     return w, loss
+
 
 def least_squares(y, tx):
     
@@ -114,6 +123,7 @@ def least_squares(y, tx):
     loss = compute_loss(y, tx, w, compute_mse)
 
     return w, loss
+
 
 def ridge_regression(y, tx, lambda_):
     
@@ -142,6 +152,7 @@ def compute_sigmoid(xw):
 
     return 1 / (1 + np.exp(-xw))
 
+
 def log_likelihood(y, tx, w):
 
     """
@@ -152,10 +163,10 @@ def log_likelihood(y, tx, w):
     :return: computed loss given by negative log likelihood
     """
     xw = tx.T @ w
-    return np.sum(np.log(1 + np.exp(xw)) -  y @ xw)
+    return np.sum(np.log(1 + np.exp(xw)) - y @ xw)
+
 
 def compute_gradient_sigmoid(y, tx, w):
-
     """
     Compute sigmoid gradient
     :param y: (n,) array
@@ -168,6 +179,7 @@ def compute_gradient_sigmoid(y, tx, w):
     grd = tx.T @ e
 
     return grd, e
+
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
@@ -185,14 +197,15 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
-        # update step
-        w = w - grd * gamma
-        loss = log_likelihood(y, tx, w)
-        print(f"Step loss: {loss}")
+            # retrieve gradient and cost
+            grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+            # update step
+            w = w - grd * gamma
+            loss = log_likelihood(y, tx, w)
+            print(f"Step loss: {loss}")
 
     return w, loss
+
 
 # needs to be adapted for regularization, maybe add a parameter to the compute gradient with
 # penalty = 'l1' or None options
@@ -212,12 +225,12 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
-        # update step
-        w = w - grd * gamma
-        loss = log_likelihood(y, tx, w)
-        print(f"Step loss: {loss}")
+            # retrieve gradient and cost
+            grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+            # update step
+            w = w - grd * gamma
+            loss = log_likelihood(y, tx, w)
+            print(f"Step loss: {loss}")
 
     return w, loss
 
