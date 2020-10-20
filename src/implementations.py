@@ -47,12 +47,39 @@ def compute_gradient_mse(y, tx, w):
     :param w: (d,) array of initial weights
     :return: (d,) array of computed vector
     """
-    
     data_size = tx.shape[0]
+
     e = y - tx @ w
     grd = - tx.T @ e / data_size
     
     return grd, e
+
+
+def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
+    """
+    Gradient descent (MSE) implementation with linear regression
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param intial_w: (d,) array of initial weights
+    :param max_iters: int indicating maximum iterations
+    :param gamma: float indicating learning rate
+    :return: final weights vector and loss
+    """
+
+    w = initial_w
+    for n_iter in range(max_iters):
+        # retrieve gradient and cost
+        grd, e = compute_gradient_mse(y, tx, w)
+        # update step
+        reg = np.sign(w) * (-1)
+        w = w - (grd + reg * LAMBDA) * gamma
+        w[w < 1] = 0
+        print(f"Step loss: {compute_mse(e)}")
+
+    # calculate the final loss
+    loss = compute_loss(y, tx, w, compute_mse) + np.sum(np.abs(w) * LAMBDA)
+
+    return w, loss
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -136,7 +163,7 @@ def ridge_regression(y, tx, lambda_):
     
     A = tx.T @ tx + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
     b = tx.T @ y
-    w = np.linalg.solve(A,b)
+    w = np.linalg.solve(A, b)
     loss = compute_loss(y, tx, w, compute_mse)
 
     return w, loss
