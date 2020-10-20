@@ -151,7 +151,7 @@ def nlog_likelihood(y, tx, w):
     """
     pred = compute_sigmoid(tx.dot(w))
     loss = y.T.dot(np.log(pred)) + (1-y).T.dot(np.log(1-pred))
-    return loss
+    return np.squeeze(-loss)
 
 def compute_gradient_sigmoid(y, tx, w):
 
