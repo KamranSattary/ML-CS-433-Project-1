@@ -213,7 +213,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
             # retrieve gradient and cost
-            grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+            grd, e = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
             # update step
             w = w - grd * gamma
             loss = log_likelihood(y, tx, w)
