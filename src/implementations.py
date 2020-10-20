@@ -61,7 +61,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     
     w = initial_w
     for n_iter in range(max_iters):
-        # retrieve gradient and cost
+        # retrieve gradient
         grd = compute_gradient_mse(y, tx, w)
         # update step
         w -= grd * gamma
@@ -87,10 +87,10 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd = compute_gradient_mse(minibatch_y, minibatch_tx, w)
-        # update step
-        w -= grd * gamma
+            # retrieve gradient
+            grd = compute_gradient_mse(minibatch_y, minibatch_tx, w)
+            # update step
+            w -= grd * gamma
 
     #calculate the final loss    
     loss = compute_loss(y, tx, w, compute_mse)
@@ -184,10 +184,10 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
-        # update step
-        w -= grd * gamma
+            # retrieve gradient
+            grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+            # update step
+            w -= grd * gamma
 
     loss = nlog_likelihood(y, tx, w)
 
@@ -209,10 +209,10 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
-        # retrieve gradient and cost
-        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w) + lambda_ * w
-        # update step
-        w -= grd * gamma
+            # retrieve gradient
+            grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w) + lambda_ * w
+            # update step
+            w -= grd * gamma
 
     loss = nlog_likelihood(y, tx, w)
 
