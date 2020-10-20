@@ -8,25 +8,75 @@ def load_data(path_dataset='../data/', standardize = True):
     """
     Loads data
     :param path_dataset: data folder containing test.csv and train.csv
-    :return: train_y (n,), train_tx (n,d+1), test_tx (m,d+1)
+    :param standardize: True or False indicating whether to standardize the data
+    :return: train_y (n,), train_x (n,d), test_x (m,d)
     """
 
-    master = np.genfromtxt('../data/train.csv', delimiter=",", skip_header=1,
+    master = np.genfromtxt(path_dataset + 'train.csv', delimiter=",", skip_header=1,
                            converters={1: lambda x: float(0) if b"b" in x else float(1)})
     train_y, train_x = master[:, 1], np.delete(master, [0, 1], axis=1)
 
-    test_x = np.genfromtxt('../data/test.csv', delimiter=",", skip_header=1)
-    test_x = np.delete(test, [0, 1], axis=1)
+    test_x = np.genfromtxt(path_dataset + 'test.csv', delimiter=",", skip_header=1)
+    test_x = np.delete(test_x, [0, 1], axis=1)
 
     if standardize == True:
-        xmean, xstd = np.mean(train_tx, axis=0), np.std(train_tx, axis=0)
+        xmean, xstd = np.mean(train_x, axis=0), np.std(train_x, axis=0)
         train_x = (train_x - xmean) / xstd
         test_x = (test_x - xmean) / xstd
 
-    train_tx = np.c_[np.ones(master.shape[0]), train_x]
-    test_tx = np.c_[np.ones(test_x.shape[0]), test_x]
+    return train_y, train_x, test_x
 
-    return train_y, train_tx, test_tx
+
+def build_poly(x, degree):
+    """
+    Builds polynomial augmented data
+    :param x:
+    :param degree:
+    :return: tx
+    """
+    r = x.copy()
+    for deg in range(2, degree + 1):
+        r = np.c_[r, np.power(x, deg)]
+
+    tx = np.c_[np.ones(r.shape[0]), r]
+    return tx
+
+def build_k_indices(y, k_fold, seed):
+
+    """
+    Builds k index sets from input data
+    :param y:
+    :param k_fold:
+    :param seed:
+    :return:
+    """
+
+    np.random.seed(seed)
+
+    num_row = y.shape[0]
+    interval = int(num_row/k_fold)
+    indices = np.random.permutation(num_row)
+    k_indices = [indices[k*interval: (k+1) * interval] for k in range(k_fold)]
+
+    return np.array(k_indices)
+
+# example of how to use build_k_indices to cross validate
+def cross_validation(y, x, k_indices, k, lambda_, degree):
+    te_indice = k_indices[k]
+    tr_indice = k_indices[~(np.arange(k_indices.shape[0]) == k)]
+    tr_indice = tr_indice.reshape(-1)
+    y_te, y_tr = y[te_indice], y[tr_indice]
+    x_te, x_tr = x[te_indice], x[tr_indice]
+
+    tx_tr = build_poly(x_tr, degree)
+    tx_te = build_poly(x_te, degree)
+
+    w = ridge_regression(y_tr, tx_tr, lambda_)
+
+    loss_tr = np.sqrt(2 * compute_mse(y_tr, tx_tr, w))
+    loss_te = np.sqrt(2 * compute_mse(y_te, tx_te, w))
+
+    return loss_tr, loss_te, w
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
