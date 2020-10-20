@@ -149,7 +149,7 @@ def nlog_likelihood(y, tx, w):
     :param w: (d,) array of weights
     :return: computed loss given by negative log likelihood
     """
-    pred = sigmoid(tx.dot(w))
+    pred = compute_sigmoid(tx.dot(w))
     loss = y.T.dot(np.log(pred)) + (1-y).T.dot(np.log(1-pred))
     return loss
 
