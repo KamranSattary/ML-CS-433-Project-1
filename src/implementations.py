@@ -29,7 +29,7 @@ def compute_loss(y, tx, w, loss_function=compute_mse):
     :return: computed cost using mean squared error or mean absolute error
     """
     
-    return loss_function(y - tx @ w)
+    return loss_function(y - tx.dot(w))
 
 def compute_gradient_mse(y, tx, w):
     
@@ -42,10 +42,10 @@ def compute_gradient_mse(y, tx, w):
     """
     
     data_size = tx.shape[0]
-    e = y - tx @ w
-    grd = - tx.T @ e / data_size
+    e = y - tx.dot(w)
+    grd = - tx.T.dot(e) / data_size
     
-    return grd, e
+    return grd
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     
@@ -62,10 +62,9 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     for n_iter in range(max_iters):
         # retrieve gradient and cost
-        grd, e = compute_gradient_mse(y, tx, w)
+        grd = compute_gradient_mse(y, tx, w)
         # update step
-        w = w - grd * gamma
-        print(f"Step loss: {compute_mse(e)}")
+        w -= grd * gamma
         
     #calculate the final loss
     loss = compute_loss(y, tx, w, compute_mse)
@@ -89,10 +88,9 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
         # retrieve gradient and cost
-        grd, e = compute_gradient_mse(minibatch_y, minibatch_tx, w)
+        grd = compute_gradient_mse(minibatch_y, minibatch_tx, w)
         # update step
-        w = w - grd * gamma
-        print(f"Step loss: {compute_mse(e)}")
+        w -= grd * gamma
 
     #calculate the final loss    
     loss = compute_loss(y, tx, w, compute_mse)
@@ -108,8 +106,8 @@ def least_squares(y, tx):
     :return: optimal weights vector, loss(mse)
     """
     
-    A = tx.T @ tx
-    b = tx.T @ y
+    A = tx.T.dot(tx)
+    b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
     loss = compute_loss(y, tx, w, compute_mse)
 
@@ -124,8 +122,8 @@ def ridge_regression(y, tx, lambda_):
     :return: loss(mse), optimal weights vector
     """
     
-    A = tx.T @ tx + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
-    b = tx.T @ y
+    A = tx.T.dot(tx) + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
+    b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
     loss = compute_loss(y, tx, w, compute_mse)
 
@@ -142,7 +140,7 @@ def compute_sigmoid(xw):
 
     return 1 / (1 + np.exp(-xw))
 
-def log_likelihood(y, tx, w):
+def nlog_likelihood(y, tx, w):
 
     """
     Compute the negative log likelihood loss
@@ -151,8 +149,9 @@ def log_likelihood(y, tx, w):
     :param w: (d,) array of weights
     :return: computed loss given by negative log likelihood
     """
-    xw = tx.T @ w
-    return np.sum(np.log(1 + np.exp(xw)) -  y @ xw)
+    pred = sigmoid(tx.dot(w))
+    loss = y.T.dot(np.log(pred)) + (1-y).T.dot(np.log(1-pred))
+    return loss
 
 def compute_gradient_sigmoid(y, tx, w):
 
@@ -164,10 +163,10 @@ def compute_gradient_sigmoid(y, tx, w):
     :return: (d,) array of computed gradient vector
     """
 
-    e = compute_sigmoid(tx @ w) - y
-    grd = tx.T @ e
+    pred = compute_sigmoid(tx.dot(w))
+    grd = tx.T.dot(pred-y)
 
-    return grd, e
+    return grd
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
@@ -188,18 +187,16 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         # retrieve gradient and cost
         grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
         # update step
-        w = w - grd * gamma
-        loss = log_likelihood(y, tx, w)
-        print(f"Step loss: {loss}")
+        w -= grd * gamma
+
+    loss = nlog_likelihood(y, tx, w)
 
     return w, loss
 
-# needs to be adapted for regularization, maybe add a parameter to the compute gradient with
-# penalty = 'l1' or None options
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
     """
-    Logistic regression using SGD
+    Regularized logistic regression using SGD
     :param y: (n,) array
     :param tx: (n,d) matrix
     :param intial_w: (d,) array of initial weights
@@ -213,11 +210,11 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     for n_iter in range(max_iters):
         for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
         # retrieve gradient and cost
-        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
+        grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w) + lambda_ * w
         # update step
-        w = w - grd * gamma
-        loss = log_likelihood(y, tx, w)
-        print(f"Step loss: {loss}")
+        w -= grd * gamma
+
+    loss = nlog_likelihood(y, tx, w)
 
     return w, loss
 
