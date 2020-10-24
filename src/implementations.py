@@ -1,35 +1,16 @@
-def compute_mse(e):
+import numpy as np
+
+def compute_mse(y, tx, w):
     
     """
     Calculate the Mean Squared Error for the vector e
-    :param e: (n,) array consisting of the error term
-    :return: computed cost using mean squared error
-    """
-    
-    return 1/2*np.mean(e**2)
-
-def compute_mae(e):
-    
-    """
-    Calculate the Mean Absolute Error for the vector e
-    :param e: (n,) array consisting of the error term
-    :return: computed cost using mean absolute error
-    """
-    
-    return np.mean(np.abs(e))
-
-def compute_loss(y, tx, w, loss_function=compute_mse):
-    
-    """
-    Wrapper for the mse & mae cost computations, calculates e and then returns either mse (default) or mae
     :param y: (n,) array
     :param tx: (n,d) matrix
-    :param w: (d,) array
-    :param loss_function: function to use to compute the loss, compute_mse (default) and compute_mae currently supported
-    :return: computed cost using mean squared error or mean absolute error
+    :param w: (d,) array    :return: computed cost using mean squared error
+    :return: computed cost using mean squared error
     """
-    
-    return loss_function(y - tx.dot(w))
+    e = y-tx.dot(w)
+    return 1/2*np.mean(e**2)
 
 def compute_gradient_mse(y, tx, w):
     
@@ -67,7 +48,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         w -= grd * gamma
         
     #calculate the final loss
-    loss = compute_loss(y, tx, w, compute_mse)
+    loss = compute_mse(y, tx, w)
     
     return w, loss
 
@@ -93,7 +74,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
             w -= grd * gamma
 
     #calculate the final loss    
-    loss = compute_loss(y, tx, w, compute_mse)
+    loss = compute_mse(y, tx, w)
     
     return w, loss
 
@@ -109,7 +90,7 @@ def least_squares(y, tx):
     A = tx.T.dot(tx)
     b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
-    loss = compute_loss(y, tx, w, compute_mse)
+    loss = compute_mse(y, tx, w)
 
     return w, loss
 
@@ -125,7 +106,7 @@ def ridge_regression(y, tx, lambda_):
     A = tx.T.dot(tx) + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
     b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
-    loss = compute_loss(y, tx, w, compute_mse)
+    loss = compute_mse(y, tx, w)
 
     return w, loss
 
