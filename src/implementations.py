@@ -103,7 +103,8 @@ def ridge_regression(y, tx, lambda_):
     :return: loss(mse), optimal weights vector
     """
     
-    A = tx.T.dot(tx) + (tx.shape[0] * 2 * lambda_ * np.eye(tx.shape[1]))
+    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
+    A = tx.T.dot(tx) + aI
     b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
     loss = compute_mse(y, tx, w)
