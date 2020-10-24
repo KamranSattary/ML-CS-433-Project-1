@@ -3,49 +3,83 @@ import numpy as np
 from implementations import compute_loss, compute_gradient_mse, compute_mse
 from proj1_helpers import load_csv_data
 
-
-def standardize(x):
+def build_poly(x, degree):
     """
-    Standardize data
-    :param x matrix(n, d)
-    :return x standardized
+    Polynomial expansion
+    :param x:
+    :param degree:
+    :return:
+    """
+    r = np.ones((len(x)), 1)
+    for d in range(1, degree+1):
+        r = np.c_[r, np.power(r, d)]
+    return r
+
+def build_k_indices(y, k_fold, seed):
+
+    """
+    Builds k index sets from input data
+    :param y:
+    :param k_fold:
+    :param seed:
+    :return:
     """
 
-    # Consider -999 NaN
-    inds = np.where(x == -999)
-    x[inds] = np.nan
+    # set seed for reproducibility and jumble data
+    np.random.seed(seed)
+    num_row = y.shape[0]
+    indices = np.random.permutation(num_row)
 
-    # Get the median without Nan values for each column
-    col_mean = np.nanmedian(x, axis=0)
+    # determine interval length
+    interval = int(num_row/k_fold)
+
+    # create index list between start and end of interval of each fold
+    k_indices = [indices[k*interval: (k+1)*interval] for k in range(k_fold)]
+
+    return np.array(k_indices)
+
+def fill_nan(x_fill, x_vals, fill_method=np.nanmedian):
+    """
+    Replaces missing values given a method (mean, median) to use to calculate replacement
+    :param x_fill: matrix(n, d) matrix which NaNs should be filled
+    :param x_vals: matrix(m, d) matrix from which fill values should be calculated
+    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian and np.nanmean
+    :return x: normalized with given method and nan-filled with given values
+    """
+
+    # Retrieve fill values, remember -999 is NaN
+    inds = np.where(x_vals == -999)
+    x_vals[inds] = np.nan
+    # Get the median or mean without Nan values for each column
+    fill_val = fill_method(x_vals, axis=0)
 
     # Find indices that you need to replace
-    inds = np.where(np.isnan(x))
+    replace_inds = np.where(x_fill == -999)
 
     # Place column means in the indices. Align the arrays using take
-    x[inds] = np.take(col_mean, inds[1])
+    x_fill[replace_inds] = np.take(fill_val, replace_inds[1])
 
-    # Min max normalization
-    xmin, xmax = np.min(x, axis=0), np.max(x, axis=0)
-    x = (x - xmin) / (xmax - xmin)
+    return x_fill
 
-    return x
-
-
-def load_data(path_dataset, standardize=True, standard_fct=standardize):
+def minmax_normalize(x, xmax, xmin):
     """
-    Loads data
-    :param path_dataset: data folder containing test.csv and train.csv
-    :param standardize should the data be standardized
-    :param standard_fct function used for standardization
-    :return: y (n,), tX (n,d), ids (n)
+    Normalizes matrix given max x and min x
+    :param x:
+    :param xmax:
+    :param xmin:
+    :return:
     """
-    y, tX, ids = load_csv_data(path_dataset)
+    return (x - xmin) / (xmax - xmin)
 
-    if standardize:
-        tX = standard_fct(tX)
-
-    return y, tX, ids
-
+def standardize(x, mu, std):
+    """
+    Standardizes matrix given mean mu and standard deviation
+    :param x:
+    :param mu:
+    :param std:
+    :return:
+    """
+    return (x-mu)/std
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
@@ -83,6 +117,7 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
+# do we use this? if not delete
 def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
     """
     L1 regularized linear regression = Lasso Regression
