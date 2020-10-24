@@ -1,6 +1,6 @@
 import numpy as np
 
-from helpers import batch_iter
+import helpers
 
 
 def compute_mse(e):
@@ -93,7 +93,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+        for minibatch_y, minibatch_tx in helpers.batch_iter(y, tx, batch_size=1, num_batches=1):
             # retrieve gradient and cost
             grd, e = compute_gradient_mse(minibatch_y, minibatch_tx, w)
             # update the weights in gradient direction
@@ -189,7 +189,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
     w = initial_w
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+        for minibatch_y, minibatch_tx in helpers.batch_iter(y, tx, batch_size=1, num_batches=1):
             # retrieve gradient and cost
             grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
             # update step
@@ -216,7 +216,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     w = initial_w
     # uniform picking of minibatch of a single datapoint in this case
     for n_iter in range(max_iters):
-        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size=1, num_batches=1):
+        for minibatch_y, minibatch_tx in helpers.batch_iter(y, tx, batch_size=1, num_batches=1):
             # retrieve gradient and cost
             grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
             # update step

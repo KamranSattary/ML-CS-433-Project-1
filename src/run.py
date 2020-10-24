@@ -1,68 +1,133 @@
 from helpers import *
-from implementations import least_squares_GD, least_squares_SGD, least_squares, \
-    ridge_regression, logistic_regression, reg_logistic_regression, lasso_reg
+from implementations import ridge_regression
 from proj1_helpers import *
-from nn import *
-
-from neural_net import NeuralNetwork
+import argparse
+import pickle
 
 # define constants
 DATA_TRAIN_PATH = 'data/train.csv'
 DATA_TEST_PATH = 'data/test.csv'
+RESULT_PATH = 'data/infered.csv'
 
-GAMMA = 0.0001
-MAX_ITER = 100
-LAMBDA = 200
+# define best parameters found
+DEGREE = 13
+LAMBDA = 1e-20
+K_FOLD = 10
+
+# for same k-fold
+SEED = 12
+
+# command line arguments
+parser = argparse.ArgumentParser(description='Train(optional) model and generate prediction')
+parser.add_argument('-train_path', default=DATA_TRAIN_PATH, help='Train dataset full path; otherwise assumed')
+parser.add_argument('-infer_path', default=DATA_TEST_PATH, help='Predict dataset full path; otherwise assumed')
+parser.add_argument('-result_path', default=RESULT_PATH, help='Where to save the inference result full path; '
+                                                              'otherwise assumed')
+parser.add_argument('-w', default=None, help='Path to pickle file of weights. If present just the predict step will '
+                                             'take place')
+
+args = parser.parse_args()
 
 
+def get_normalization_methods(tX):
+    """
+    Return the normalization methods initialized using training set
+    :param: tX: matrix(n, d) training set
+    :return: a list of methods that will be applied on data sets
+    """
+    # remove NaN from input data
+    fill_nan = fill_nan_closure(tX)
 
-def print_predition(function, params, test):
-    w, loss = function(*params)
+    # prepare minmax normalization
+    xmin, xmax = np.min(tX, axis=0), np.max(tX, axis=0)
+    minmax = minmax_normalize_closure(xmax, xmin)
 
-    print(w)
+    return [fill_nan, minmax]
 
-    test_labels, tX_test = test
-    pred_labels = predict_labels(w, tX_test)
-    correct = np.equal(pred_labels, test_labels)
-    correct = correct.reshape(len(correct))
-    print(correct)
-    print(np.sum(correct), len(test_labels))
+
+def normalize_data(tX, methods):
+    """
+    Apply normalization methods on the dataset
+    :param tX: matrix(n, d) dataset
+    :param methods: array(k): methods to be applied
+    :return: normalized tX
+    """
+    for method in methods:
+        tX = method(tX)
+    return tX
+
+
+def prepare_labels(y, prev, new):
+    """
+    The training algorithm expects the label to be 0 or 1 while the verification algorithm expect them to be -1 and 1.
+    This method converts them back anf forth
+    :param y: array(n) - labels
+    :param prev: int - labels that need to be changed
+    :param new: int - the new value
+    """
+    y[y == prev] = new
+    return y
+
+
+def train(tX, y):
+    """
+    Train the model
+    :param tX: model(n, d) - input
+    :param y: array(n) - labels
+    :return w: the weight of the model
+    """
+    # Split the dataset k-fold
+    k_indices = build_k_indices(len(y), K_FOLD, SEED)
+    training, testing = cross_validation(y, tX, k_indices, 3)
+
+    # build the polynomial fct
+    tx_tr = build_poly(training[0], DEGREE)
+    tx_te = build_poly(testing[0], DEGREE)
+
+    # Train the model
+    w, _ = ridge_regression(training[1], tx_tr, LAMBDA)
+
+    # Compute loss
+    loss_tr = compute_loss(training[1], tx_tr, w)
+    loss_te = compute_loss(testing[1], tx_te, w)
+
+    print("Training set loss {}; test set loss {}".format(loss_tr, loss_te))
+
+    return w
+
+
+def save_predict(tX, w, inds):
+    """
+    Save predictions
+    :param tX: matrix(n, d) data to be predicted
+    :param w: array(d) model weights
+    :param inds;
+    "return None
+    """
+    pred = predict(build_poly(tX, DEGREE), w)
+    pred = prepare_labels(pred, 0, -1)
+
+    create_csv_submission(inds, pred, args.result_path)
 
 
 def main():
-    y, tX, ids = load_csv_data(DATA_TRAIN_PATH)
-    print(y.shape, tX.shape)
-    test_labels, tX_test, _ = load_csv_data(DATA_TEST_PATH)
-    test_labels = test_labels.reshape(-1, 1)
-    w, loss = ridge_regression(y, tX, LAMBDA)
+    # Get training set and compute normalization params
+    y, tX, ids = load_csv_data(args.train_path)
+    norm_method = get_normalization_methods(tX)
 
-    print(w)
-    init_weights = np.random.random_sample((tX.shape[1], 1))
-    w, _ = lasso_reg(y.reshape((-1, 1)), tX, init_weights, 40, GAMMA, LAMBDA)
+    if args.w is None:
+        # No saved weights => normalize and train
+        tX = normalize_data(tX, norm_method)
+        w = train(tX, y)
+    else:
+        # Otherwise load the saved weight
+        with open(args.w, 'rb') as f:
+            w = pickle.load(f)
 
-    removed_features = np.where(w == 0)
-    tX = np.delete(tX, removed_features, axis=1)
-    tX_test = np.delete(tX_test, removed_features, axis=1)
-
-    shape = len(tX[0])
-    print(tX.shape, y.shape)
-
-    NN_ARCHITECTURE = [
-        {"input_dim": shape, "output_dim": 25, "activation": "relu"},
-        {"input_dim": 25, "output_dim": 50, "activation": "relu"},
-        {"input_dim": 50, "output_dim": 50, "activation": "relu"},
-        {"input_dim": 50, "output_dim": 25, "activation": "relu"},
-        {"input_dim": 25, "output_dim": 1, "activation": "sigmoid"},
-    ]
-
-    params_values, cost_history, accuracy_history = train(tX[:10000].T, y[:10000].reshape((-1, 1)).T, NN_ARCHITECTURE, 1000, 0.01)
-    Y_test_hat, _ = full_forward_propagation(np.transpose(tX_test.T), params_values, NN_ARCHITECTURE)
-
-    print(Y_test_hat)
-    acc_test = get_accuracy_value(Y_test_hat, np.transpose(test_labels))
-    print("Test set accuracy: {:.2f} - David".format(acc_test))
-
-    # print_predition(ridge_regression, (y, tX, LAMBDA), (test_labels, tX_test))
+    # Get an normalized pred set + run inference and save
+    _, tX_pred, ids_pred = load_csv_data(args.infer_path)
+    tX_pred = normalize_data(tX_pred, norm_method)
+    save_predict(tX_pred, w, ids_pred)
 
 
 if __name__ == '__main__':

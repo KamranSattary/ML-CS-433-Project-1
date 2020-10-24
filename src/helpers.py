@@ -1,7 +1,6 @@
 """some helper functions."""
 import numpy as np
 from implementations import compute_loss, compute_gradient_mse, compute_mse
-from proj1_helpers import load_csv_data
 
 
 def build_poly(x, degree):
@@ -11,19 +10,18 @@ def build_poly(x, degree):
     :param degree:
     :return:
     """
-    r = np.ones((len(x)), 1)
+    r = x.copy()
+    for deg in range(2, degree + 1):
+        r = np.c_[r, np.power(x, deg)]
 
-    for d in range(1, degree+1):
-        r = np.c_[r, np.power(r, d)]
-
-    return r
+    return np.c_[np.ones(r.shape[0]), r]
 
 
-def build_k_indices(y, k_fold, seed):
+def build_k_indices(num_row, k_fold, seed):
 
     """
     Builds k index sets from input data
-    :param y:
+    :param num_row:
     :param k_fold:
     :param seed:
     :return:
@@ -31,7 +29,6 @@ def build_k_indices(y, k_fold, seed):
 
     # set seed for reproducibility and jumble data
     np.random.seed(seed)
-    num_row = y.shape[0]
     indices = np.random.permutation(num_row)
 
     # determine interval length
@@ -41,6 +38,19 @@ def build_k_indices(y, k_fold, seed):
     k_indices = [indices[k*interval: (k+1)*interval] for k in range(k_fold)]
 
     return np.array(k_indices)
+
+
+def cross_validation(y, x, k_indices, k):
+    # split indices in test and train
+    te_indice = k_indices[k]
+    tr_indice = k_indices[~(np.arange(k_indices.shape[0]) == k)]
+    tr_indice = tr_indice.reshape(-1)
+
+    # create the 2 sets
+    y_te, y_tr = y[te_indice], y[tr_indice]
+    x_te, x_tr = x[te_indice], x[tr_indice]
+
+    return (x_tr, y_tr), (x_te, y_te)
 
 
 def fill_nan_closure(x_fill, fill_method=np.nanmedian):
@@ -55,7 +65,10 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
 
     fill_val = fill_method(x_fill, axis=0)
 
+    print(fill_val.shape)
+
     def fill_nan(x):
+        print(x.shape)
         # Retrieve fill values, remember -999 is NaN
         inds = np.where(x == -999)
         x[inds] = np.nan
@@ -63,11 +76,9 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
         # Place column means in the indices. Align the arrays using take
         x[inds] = np.take(fill_val, inds[1])
 
-        return x_fill
+        return x
 
-    x_fill = fill_nan(x_fill)
-
-    return x_fill, fill_nan
+    return fill_nan
 
 
 def minmax_normalize_closure(xmax, xmin):
@@ -94,6 +105,19 @@ def standardize_closure(mu, std):
         return (x - mu) / std
 
     return standardize
+
+
+def predict(tx, w):
+    """Predict the labels for the dataset
+    :param tx: array(n,d) dataset
+    :param w: array(d) weights
+    :return predictions"""
+
+    y_pred = tx.dot(w)
+    y_pred[np.where(y_pred > 0)] = 1
+    y_pred[np.where(y_pred <= 0)] = -1
+
+    return y_pred
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
