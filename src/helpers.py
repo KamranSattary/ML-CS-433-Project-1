@@ -1,45 +1,19 @@
 """some helper functions."""
 import numpy as np
-import matplotlib.pyplot as plt
-
-# didnt find how to load from zip with just numpy?
-def load_data(path_dataset='../data/', standardize = True):
-
-    """
-    Loads data
-    :param path_dataset: data folder containing test.csv and train.csv
-    :param standardize: True or False indicating whether to standardize the data
-    :return: train_y (n,), train_x (n,d), test_x (m,d)
-    """
-
-    master = np.genfromtxt(path_dataset + 'train.csv', delimiter=",", skip_header=1,
-                           converters={1: lambda x: float(0) if b"b" in x else float(1)})
-    train_y, train_x = master[:, 1], np.delete(master, [0, 1], axis=1)
-
-    test_x = np.genfromtxt(path_dataset + 'test.csv', delimiter=",", skip_header=1)
-    test_x = np.delete(test_x, [0, 1], axis=1)
-
-    if standardize == True:
-        xmean, xstd = np.mean(train_x, axis=0), np.std(train_x, axis=0)
-        train_x = (train_x - xmean) / xstd
-        test_x = (test_x - xmean) / xstd
-
-    return train_y, train_x, test_x
-
+from implementations import compute_loss, compute_gradient_mse, compute_mse
+from proj1_helpers import load_csv_data
 
 def build_poly(x, degree):
     """
-    Builds polynomial augmented data
+    Polynomial expansion
     :param x:
     :param degree:
-    :return: tx
+    :return:
     """
-    r = x.copy()
-    for deg in range(2, degree + 1):
-        r = np.c_[r, np.power(x, deg)]
-
-    tx = np.c_[np.ones(r.shape[0]), r]
-    return tx
+    r = np.ones((len(x)), 1)
+    for d in range(1, degree+1):
+        r = np.c_[r, np.power(r, d)]
+    return r
 
 def build_k_indices(y, k_fold, seed):
 
@@ -51,40 +25,73 @@ def build_k_indices(y, k_fold, seed):
     :return:
     """
 
+    # set seed for reproducibility and jumble data
     np.random.seed(seed)
-
     num_row = y.shape[0]
-    interval = int(num_row/k_fold)
     indices = np.random.permutation(num_row)
-    k_indices = [indices[k*interval: (k+1) * interval] for k in range(k_fold)]
+
+    # determine interval length
+    interval = int(num_row/k_fold)
+
+    # create index list between start and end of interval of each fold
+    k_indices = [indices[k*interval: (k+1)*interval] for k in range(k_fold)]
 
     return np.array(k_indices)
 
-# example of how to use build_k_indices to cross validate
-def cross_validation(y, x, k_indices, k, lambda_, degree):
-    te_indice = k_indices[k]
-    tr_indice = k_indices[~(np.arange(k_indices.shape[0]) == k)]
-    tr_indice = tr_indice.reshape(-1)
-    y_te, y_tr = y[te_indice], y[tr_indice]
-    x_te, x_tr = x[te_indice], x[tr_indice]
+def fill_nan(x_fill, x_vals, fill_method=np.nanmedian):
+    """
+    Replaces missing values given a method (mean, median) to use to calculate replacement
+    :param x_fill: matrix(n, d) matrix which NaNs should be filled
+    :param x_vals: matrix(m, d) matrix from which fill values should be calculated
+    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian and np.nanmean
+    :return x: normalized with given method and nan-filled with given values
+    """
 
-    tx_tr = build_poly(x_tr, degree)
-    tx_te = build_poly(x_te, degree)
+    # Retrieve fill values, remember -999 is NaN
+    inds = np.where(x_vals == -999)
+    x_vals[inds] = np.nan
+    # Get the median or mean without Nan values for each column
+    fill_val = fill_method(x_vals, axis=0)
 
-    w = ridge_regression(y_tr, tx_tr, lambda_)
+    # Find indices that you need to replace
+    replace_inds = np.where(x_fill == -999)
 
-    loss_tr = np.sqrt(2 * compute_mse(y_tr, tx_tr, w))
-    loss_te = np.sqrt(2 * compute_mse(y_te, tx_te, w))
+    # Place column means in the indices. Align the arrays using take
+    x_fill[replace_inds] = np.take(fill_val, replace_inds[1])
 
-    return loss_tr, loss_te, w
+    return x_fill
+
+def minmax_normalize(x, xmax, xmin):
+    """
+    Normalizes matrix given max x and min x
+    :param x:
+    :param xmax:
+    :param xmin:
+    :return:
+    """
+    return (x - xmin) / (xmax - xmin)
+
+def standardize(x, mu, std):
+    """
+    Standardizes matrix given mean mu and standard deviation
+    :param x:
+    :param mu:
+    :param std:
+    :return:
+    """
+    return (x-mu)/std
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
-
     """
     Generate a minibatch iterator for a dataset.
-    Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
-    Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
-    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
+    :param y: (n,) array - labels
+    :param tx: (n,d) matrix - inputs
+    :param batch_size: int
+    :param num_batches: int; number of batches
+    :param shuffle: boolean; shuffle the dataset or not to avoid ordering in the original data messing with the
+    randomness of the minibatches
+    :return: final weights vector and loss
+    :return: an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
     Example of use :
     for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
         <DO-SOMETHING>
@@ -92,16 +99,52 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
     data_size = len(y)
 
+    # If !shuffle; easier for processor as branching takes a lot of time
+    shuffled_y = y
+    shuffled_tx = tx
+
     if shuffle:
-        shuffle_indices = np.random.permutation(np.arange(data_size))
-        shuffled_y = y[shuffle_indices]
-        shuffled_tx = tx[shuffle_indices]
-    else:
-        shuffled_y = y
-        shuffled_tx = tx
+        # If permutation param is an integer, randomly permute ``np.arange(param)``
+        shuffle_indices = np.random.permutation(data_size)
+        shuffled_y = shuffled_y[shuffle_indices]
+        shuffled_tx = shuffled_tx[shuffle_indices]
+
     for batch_num in range(num_batches):
         start_index = batch_num * batch_size
         end_index = min((batch_num + 1) * batch_size, data_size)
-        if start_index != end_index:
+
+        if start_index < end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
+
+# do we use this? if not delete
+def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
+    """
+    L1 regularized linear regression = Lasso Regression
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param intial_w: (d,) array; initial weights
+    :param max_iters: int; number of iterations
+    :param gamma: float; learning rate
+    :return: final weights vector and loss
+    """
+
+    w = initial_w
+    for n_iter in range(max_iters):
+        # retrieve gradient and cost
+        grd, e = compute_gradient_mse(y, tx, w)
+
+        # prepare the regularization factor
+        reg = np.sign(w) * (-1)
+
+        # update the weights
+        w = w - (grd + reg * LAMBDA) * gamma
+
+        # set small weights to 0
+        w[w < 0.15] = 0
+        print(f"Step loss: {compute_mse(e)}")
+
+    # calculate the final loss
+    loss = compute_loss(y, tx, w, compute_mse) + np.sum(np.abs(w) * LAMBDA)
+
+    return w, loss
