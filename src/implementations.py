@@ -73,7 +73,7 @@ def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
         # update step
         reg = np.sign(w) * (-1)
         w = w - (grd + reg * LAMBDA) * gamma
-        w[w < 1] = 0
+        w[w < 0.15] = 0
         print(f"Step loss: {compute_mse(e)}")
 
     # calculate the final loss
