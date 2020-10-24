@@ -3,6 +3,7 @@ import numpy as np
 from implementations import compute_loss, compute_gradient_mse, compute_mse
 from proj1_helpers import load_csv_data
 
+
 def build_poly(x, degree):
     """
     Polynomial expansion
@@ -11,9 +12,12 @@ def build_poly(x, degree):
     :return:
     """
     r = np.ones((len(x)), 1)
+
     for d in range(1, degree+1):
         r = np.c_[r, np.power(r, d)]
+
     return r
+
 
 def build_k_indices(y, k_fold, seed):
 
@@ -38,48 +42,59 @@ def build_k_indices(y, k_fold, seed):
 
     return np.array(k_indices)
 
-def fill_nan(x_fill, x_vals, fill_method=np.nanmedian):
+
+def fill_nan_closure(x_fill, fill_method=np.nanmedian):
     """
     Replaces missing values given a method (mean, median) to use to calculate replacement
     :param x_fill: matrix(n, d) matrix which NaNs should be filled
-    :param x_vals: matrix(m, d) matrix from which fill values should be calculated
-    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian and np.nanmean
-    :return x: normalized with given method and nan-filled with given values
+    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian
+    and np.nanmean
+    :return x: normalized with given method and nan-filled with given values, closure that knows the fill value for the
+    prediction set
     """
 
-    # Retrieve fill values, remember -999 is NaN
-    inds = np.where(x_vals == -999)
-    x_vals[inds] = np.nan
-    # Get the median or mean without Nan values for each column
-    fill_val = fill_method(x_vals, axis=0)
+    fill_val = fill_method(x_fill, axis=0)
 
-    # Find indices that you need to replace
-    replace_inds = np.where(x_fill == -999)
+    def fill_nan(x):
+        # Retrieve fill values, remember -999 is NaN
+        inds = np.where(x == -999)
+        x[inds] = np.nan
 
-    # Place column means in the indices. Align the arrays using take
-    x_fill[replace_inds] = np.take(fill_val, replace_inds[1])
+        # Place column means in the indices. Align the arrays using take
+        x[inds] = np.take(fill_val, inds[1])
 
-    return x_fill
+        return x_fill
 
-def minmax_normalize(x, xmax, xmin):
+    x_fill = fill_nan(x_fill)
+
+    return x_fill, fill_nan
+
+
+def minmax_normalize_closure(xmax, xmin):
     """
     Normalizes matrix given max x and min x
-    :param x:
     :param xmax:
     :param xmin:
-    :return:
+    :return: function that only takes x as argument
     """
-    return (x - xmin) / (xmax - xmin)
+    def minmax_normalize(x):
+        return (x - xmin) / (xmax - xmin)
 
-def standardize(x, mu, std):
+    return minmax_normalize
+
+
+def standardize_closure(mu, std):
     """
     Standardizes matrix given mean mu and standard deviation
-    :param x:
     :param mu:
     :param std:
     :return:
     """
-    return (x-mu)/std
+    def standardize(x):
+        return (x - mu) / std
+
+    return standardize
+
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
