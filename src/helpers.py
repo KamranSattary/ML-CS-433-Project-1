@@ -5,18 +5,19 @@ from proj1_helpers import load_csv_data
 
 
 def build_poly(x, degree):
+
     """
-    Polynomial expansion
-    :param x:
-    :param degree:
+    Builds polynomial augmented dataset
+    :param x: 
+    :param degree: 
     :return:
     """
-    r = np.ones((len(x)), 1)
+    r = x.copy()
+    for deg in range (2,degree+1):
+        r = np.c_[r, np.power(x, deg)]
+        
+    return np.c_[np.ones(r.shape[0]), r]
 
-    for d in range(1, degree+1):
-        r = np.c_[r, np.power(r, d)]
-
-    return r
 
 
 def build_k_indices(y, k_fold, seed):
@@ -95,6 +96,11 @@ def standardize_closure(mu, std):
 
     return standardize
 
+def predict_without_classifying(weights, data):
+    #"""Generates predictions (pre-classification via threshold!) given weights, and a test data matrix"""
+    y_pred = np.dot(data, weights)
+    
+    return y_pred
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
