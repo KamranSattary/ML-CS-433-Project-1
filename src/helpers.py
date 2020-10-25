@@ -56,6 +56,7 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
     fill_val = fill_method(x_fill, axis=0)
 
     def fill_nan(x):
+        print(x.shape)
         # Retrieve fill values, remember -999 is NaN
         inds = np.where(x == -999)
         x[inds] = np.nan
@@ -63,12 +64,9 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
         # Place column means in the indices. Align the arrays using take
         x[inds] = np.take(fill_val, inds[1])
 
-        return x_fill
+        return x
 
-    x_fill = fill_nan(x_fill)
-
-    return x_fill, fill_nan
-
+    return fill_nan
 
 def minmax_normalize_closure(xmax, xmin):
     """
