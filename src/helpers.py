@@ -177,8 +177,8 @@ def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
         w = w - (grd + reg * LAMBDA) * gamma
 
         # set small weights to 0
-        w[w < 0.15] = 0
-        print(f"Step loss: {compute_mse(e)}")
+        w[w < 0.005] = 0
+        # print(f"Step loss: {compute_mse(e)}")
 
     # calculate the final loss
     loss = compute_loss(y, tx, w, compute_mse) + np.sum(np.abs(w) * LAMBDA)
