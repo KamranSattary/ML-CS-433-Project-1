@@ -65,10 +65,7 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
 
     fill_val = fill_method(x_fill, axis=0)
 
-    print(fill_val.shape)
-
     def fill_nan(x):
-        print(x.shape)
         # Retrieve fill values, remember -999 is NaN
         inds = np.where(x == -999)
         x[inds] = np.nan
