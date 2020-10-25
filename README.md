@@ -66,7 +66,7 @@ Then the result should be in the `data` file in `sample-submission.csv`.
 
 ## Report
 
-Here is our report in pdf format: REPORT.PDF
+Here is our report in pdf format: [KLR_Report.pdf](KLR_Report.pdf)
 
 ## Team
 
