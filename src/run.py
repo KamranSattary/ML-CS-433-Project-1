@@ -11,22 +11,40 @@ RESULT_PATH = 'data/infered.csv'
 
 # define best parameters found
 DEGREE = 13
-LAMBDA = 1e-30
+LAMBDA = 5e-20
 K_FOLD = 10
 
 # for same k-fold
 SEED = 12
 
-# command line arguments
-parser = argparse.ArgumentParser(description='Train(optional) model and generate prediction')
-parser.add_argument('-train_path', default=DATA_TRAIN_PATH, help='Train dataset full path; otherwise assumed')
-parser.add_argument('-infer_path', default=DATA_TEST_PATH, help='Predict dataset full path; otherwise assumed')
-parser.add_argument('-result_path', default=RESULT_PATH, help='Where to save the inference result full path; '
-                                                              'otherwise assumed')
-parser.add_argument('-w', default=None, help='Path to pickle file of weights. If present just the predict step will '
-                                             'take place')
+# For jupyter notebook
+TR_ACCURACY = None
+TE_ACCURACY = None
 
-args = parser.parse_args()
+
+def set_lambda(val):
+    """Helper function for the notebook - set LAMBDA
+    :param val: new lambda value """
+    global LAMBDA
+    LAMBDA = val
+
+
+def save_classif_percentage(tr, te):
+    """This function is used to save the percentage of good classification on the test and training dataset to the
+    python notebook
+    """
+    global TR_ACCURACY
+    global TE_ACCURACY
+
+    TR_ACCURACY = tr
+    TE_ACCURACY = te
+
+
+def ret_classif_percentage():
+    """This function is used to rerurn the percentage of good classification on the test and training dataset to the
+    python notebook
+    """
+    return TR_ACCURACY, TE_ACCURACY
 
 
 def get_normalization_methods(tX):
@@ -99,6 +117,7 @@ def train(tX, y):
 
     good_tr = np.sum(np.equal(pred_tr, training[1])) / len(training[1])
     good_te = np.sum(np.equal(pred_te, testing[1])) / len(testing[1])
+    save_classif_percentage(good_tr, good_te)
     print("Training set good classification {}; test good classification {}".format(good_tr, good_te))
 
     return w
@@ -139,4 +158,16 @@ def main():
 
 
 if __name__ == '__main__':
+    # command line arguments
+    parser = argparse.ArgumentParser(description='Train(optional) model and generate prediction')
+    parser.add_argument('-train_path', default=DATA_TRAIN_PATH, help='Train dataset full path; otherwise assumed')
+    parser.add_argument('-infer_path', default=DATA_TEST_PATH, help='Predict dataset full path; otherwise assumed')
+    parser.add_argument('-result_path', default=RESULT_PATH, help='Where to save the inference result full path; '
+                                                                  'otherwise assumed')
+    parser.add_argument('-w', default=None,
+                        help='Path to pickle file of weights. If present just the predict step will '
+                             'take place')
+
+    args = parser.parse_args()
+
     main()
