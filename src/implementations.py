@@ -46,7 +46,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         # retrieve gradient
         grd = compute_gradient_mse(y, tx, w)
         # update step
-        w -= grd * gamma
+        w = w - gamma * grd
         
     #calculate the final loss
     loss = compute_mse(y, tx, w)
@@ -72,7 +72,7 @@ def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
             # retrieve gradient
             grd = compute_gradient_mse(minibatch_y, minibatch_tx, w)
             # update step
-            w -= grd * gamma
+            w = w - gamma * grd
 
     #calculate the final loss    
     loss = compute_mse(y, tx, w)
@@ -170,7 +170,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
             # retrieve gradient
             grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w)
             # update step
-            w -= grd * gamma
+            w = w - gamma * grd
 
     loss = nlog_likelihood(y, tx, w)
 
@@ -195,9 +195,8 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             # retrieve gradient
             grd = compute_gradient_sigmoid(minibatch_y, minibatch_tx, w) + lambda_ * w
             # update step
-            w -= grd * gamma
+            w = w - gamma * grd 
 
     loss = nlog_likelihood(y, tx, w)
 
     return w, loss
-
