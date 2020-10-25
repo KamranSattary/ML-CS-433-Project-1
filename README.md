@@ -70,13 +70,6 @@ Here is our report in pdf format: REPORT.PDF
 
 ## Team
 
-<<<<<<< HEAD
-- Kamran Nejad-Sattanary
-- Razvan Mocan
-- Loïc Busson
-
-=======
 - Kamran Nejad-Sattary (kamran.nejad-sattary@epfl.ch)
 - Razvan Mocan (razvan-florin.mocan@epfl.ch)
 - Loïc Busson (loic.busson@epfl.ch)
->>>>>>> 4eef2c19a5e5c39da76eda86efa6fb460e597a10
