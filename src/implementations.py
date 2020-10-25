@@ -7,7 +7,7 @@ def compute_mse(y, tx, w):
     Calculate the Mean Squared Error for the vector e
     :param y: (n,) array
     :param tx: (n,d) matrix
-    :param w: (d,) array    :return: computed cost using mean squared error
+    :param w: (d,) array
     :return: computed cost using mean squared error
     """
     e = y-tx.dot(w)
