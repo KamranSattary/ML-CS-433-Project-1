@@ -11,7 +11,7 @@ RESULT_PATH = 'data/infered.csv'
 
 # define best parameters found
 DEGREE = 13
-LAMBDA = 1e-20
+LAMBDA = 1e-30
 K_FOLD = 10
 
 # for same k-fold
@@ -92,6 +92,14 @@ def train(tX, y):
     loss_te = compute_loss(testing[1], tx_te, w)
 
     print("Training set loss {}; test set loss {}".format(loss_tr, loss_te))
+
+    # Compute misclassified
+    pred_tr = predict(tx_tr, w)
+    pred_te = predict(tx_te, w)
+
+    good_tr = np.sum(np.equal(pred_tr, training[1])) / len(training[1])
+    good_te = np.sum(np.equal(pred_te, testing[1])) / len(testing[1])
+    print("Training set good classification {}; test good classification {}".format(good_tr, good_te))
 
     return w
 
