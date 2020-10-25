@@ -33,6 +33,27 @@ In the `src` folder you will find our code.
 - `helpers.py` contains other useful functions used to handle the data. 
 - `Visualising Ridge Tuning.ipynb` is the notebook that allowed us to create the plots in the folder `plots`. You will find explanations concerning our findings and our thought process in it.
 
+## Data preparation
+
+After importing the training data, an important step is to clean it and to normalize it. A quick look to the data allowed us to see that they were a lot of unnormal -999 values. Therefore, we filled them with NA values and then replaced them with the mediam of their corresponding column.
+
+This being done, we finally normalize the data thanks to the `minmax_normalize_closure` function in `helpers.py`. 
+
+## Feature generation
+
+For feature generation, we used the `built_poly` function in `helpers.py`. This function allows us to realize a feature expansion up to a certain degree for all features in the dataset. 
+
+## Cross validation
+
+The cross validation steps go as follows:
+
+- We retrieve k_indices of test and the rest as training
+- We split the data according to determined indices
+- We apply the feature expansion on the data with `build_poly`
+- We compute optimal weights using `ridge_regression`
+- We calculate fold MSE for training and test partitions thanks to `compute_mse`
+- We calculate fold misclassification % (which is the ratio of how many inaccurate predictions were made)
+
 ## Usage
 
 Run in the terminal:
@@ -52,3 +73,4 @@ Here is our report in pdf format: REPORT.PDF
 - Kamran Nejad-Sattanary
 - Razvan Mocan
 - Loïc Busson
+
