@@ -16,13 +16,19 @@ Here is our report in pdf format: [KLR_Report.pdf](KLR_Report.pdf)
 
 There are three folders : `data`, `src` and `plot`
 
+## Recreate final solution
+
+Run in the terminal:
+
+```
+python run.py
+```
+
+Then the result should be in the `data` file in `sample-submission.csv`. 
+
 ### Data
 
-In the `data` folder you will find `train.csv`, `test.csv` as well as `sample-submission.csv`.
-
-- `train.csv` is the data used to train our model.
-- `test.csv` is the data that we want to classify thanks to our previously trained model.
-- `sample-submission.csv` is the predictions on the `test.csv` dataset.
+In the `data` folder you will find `best degree.pkl` which is used for visualization purposes of recreating the lengthy computation plot in the `Visualizing Ridge Tuning` notebook.
 
 ### Plots
 
@@ -30,6 +36,7 @@ In the `plots` folder you will find some important graphs.
 
 - `Comparing MSE and classification loss.pdf`
 - `Determining the best degree.pdf`
+- `Determing the best lambda.pdf`
 - `Distant regressand values.pdf`
 - `Zoom determining the best degree.pdf`
 
@@ -44,7 +51,7 @@ In the `src` folder you will find our code.
 
 ## Data preparation
 
-After importing the training data, an important step is to clean it and to normalize it. A quick look to the data allowed us to see that they were a lot of unnormal -999 values. Therefore, we filled them with NA values and then replaced them with the mediam of their corresponding column.
+After importing the training data, an important step is to clean it and to normalize it. A quick look at the data (but also the data description on AIcrowd) allowed us to see that they are many -999 (missing) values. Therefore, we filled them with NA values and then replaced them with the median of their corresponding column.
 
 This being done, we finally normalize the data thanks to the `minmax_normalize_closure` function in `helpers.py`. 
 
@@ -63,12 +70,4 @@ The cross validation steps go as follows:
 - We calculate fold MSE for training and test partitions thanks to `compute_mse`
 - We calculate fold misclassification % (which is the ratio of how many inaccurate predictions were made)
 
-## Usage
 
-Run in the terminal:
-
-```
-python run.py
-```
-
-Then the result should be in the `data` file in `sample-submission.csv`. 
