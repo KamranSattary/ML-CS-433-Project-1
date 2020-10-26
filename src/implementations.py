@@ -112,7 +112,7 @@ def ridge_regression(y, tx, lambda_):
     A = tx.T.dot(tx) + aI
     b = tx.T.dot(y)
     w = np.linalg.solve(A,b)
-    loss = compute_mse(y, tx, w)
+    loss = compute_mse(y, tx, w) + lambda_ * np.linalg.norm(w) ** 2
 
     return w, loss
 
@@ -201,7 +201,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             # update step
             w = w - gamma * grd
 
-    loss = nlog_likelihood(y, tx, w)
+    loss = nlog_likelihood(y, tx, w) + lambda_ * np.linalg.norm(w) ** 2
 
     return w, loss
-
