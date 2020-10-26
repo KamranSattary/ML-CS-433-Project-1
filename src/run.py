@@ -5,9 +5,9 @@ import argparse
 import pickle
 
 # define constants
-DATA_TRAIN_PATH = 'data/train.csv'
-DATA_TEST_PATH = 'data/test.csv'
-RESULT_PATH = 'data/infered.csv'
+DATA_TRAIN_PATH = '../data/train.csv'
+DATA_TEST_PATH = '../data/test.csv'
+RESULT_PATH = '../data/infered.csv'
 
 # define best parameters found
 DEGREE = 13
