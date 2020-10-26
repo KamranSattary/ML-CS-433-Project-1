@@ -7,23 +7,24 @@ def build_poly(x, degree):
 
     """
     Builds polynomial augmented dataset
-    :param x: 
-    :param degree: 
+    :param x:
+    :param degree:
     :return:
     """
     r = x.copy()
     for deg in range (2,degree+1):
         r = np.c_[r, np.power(x, deg)]
-        
+
     return np.c_[np.ones(r.shape[0]), r]
 
 
+from implementations import compute_loss, compute_gradient_mse, compute_mse
 
-def build_k_indices(y, k_fold, seed):
+def build_k_indices(num_row, k_fold, seed):
 
     """
     Builds k index sets from input data
-    :param y:
+    :param num_row:
     :param k_fold:
     :param seed:
     :return:
@@ -31,7 +32,6 @@ def build_k_indices(y, k_fold, seed):
 
     # set seed for reproducibility and jumble data
     np.random.seed(seed)
-    num_row = y.shape[0]
     indices = np.random.permutation(num_row)
 
     # determine interval length
@@ -41,6 +41,83 @@ def build_k_indices(y, k_fold, seed):
     k_indices = [indices[k*interval: (k+1)*interval] for k in range(k_fold)]
 
     return np.array(k_indices)
+
+
+def cross_validation(y, x, k_indices, k):
+    # split indices in test and train
+    te_indice = k_indices[k]
+    tr_indice = k_indices[~(np.arange(k_indices.shape[0]) == k)]
+    tr_indice = tr_indice.reshape(-1)
+
+    # create the 2 sets
+    y_te, y_tr = y[te_indice], y[tr_indice]
+    x_te, x_tr = x[te_indice], x[tr_indice]
+
+    return (x_tr, y_tr), (x_te, y_te)
+
+
+def fill_nan_closure(x_fill, fill_method=np.nanmedian):
+    """
+    Replaces missing values given a method (mean, median) to use to calculate replacement
+    :param x_fill: matrix(n, d) matrix which NaNs should be filled
+    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian
+    and np.nanmean
+    :return x: normalized with given method and nan-filled with given values, closure that knows the fill value for the
+    prediction set
+    """
+
+    fill_val = fill_method(x_fill, axis=0)
+
+    def fill_nan(x):
+        # Retrieve fill values, remember -999 is NaN
+        inds = np.where(x == -999)
+        x[inds] = np.nan
+
+        # Place column means in the indices. Align the arrays using take
+        x[inds] = np.take(fill_val, inds[1])
+
+        return x
+
+    return fill_nan
+
+
+def minmax_normalize_closure(xmax, xmin):
+    """
+    Normalizes matrix given max x and min x
+    :param xmax:
+    :param xmin:
+    :return: function that only takes x as argument
+    """
+    def minmax_normalize(x):
+        return (x - xmin) / (xmax - xmin)
+
+    return minmax_normalize
+
+
+def standardize_closure(mu, std):
+    """
+    Standardizes matrix given mean mu and standard deviation
+    :param mu:
+    :param std:
+    :return:
+    """
+    def standardize(x):
+        return (x - mu) / std
+
+    return standardize
+
+
+def predict(tx, w):
+    """Predict the labels for the dataset
+    :param tx: array(n,d) dataset
+    :param w: array(d) weights
+    :return predictions"""
+
+    y_pred = tx.dot(w)
+    y_pred[np.where(y_pred > 0)] = 1
+    y_pred[np.where(y_pred <= 0)] = -1
+
+    return y_pred
 
 
 def fill_nan_closure(x_fill, fill_method=np.nanmedian):
@@ -68,6 +145,7 @@ def fill_nan_closure(x_fill, fill_method=np.nanmedian):
 
     return fill_nan
 
+
 def minmax_normalize_closure(xmax, xmin):
     """
     Normalizes matrix given max x and min x
@@ -93,11 +171,13 @@ def standardize_closure(mu, std):
 
     return standardize
 
+
 def predict_without_classifying(weights, data):
     #"""Generates predictions (pre-classification via threshold!) given weights, and a test data matrix"""
     y_pred = np.dot(data, weights)
-    
+
     return y_pred
+
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     """
@@ -133,3 +213,36 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
         if start_index < end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
+
+
+# do we use this? if not delete
+def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
+    """
+    L1 regularized linear regression = Lasso Regression
+    :param y: (n,) array
+    :param tx: (n,d) matrix
+    :param intial_w: (d,) array; initial weights
+    :param max_iters: int; number of iterations
+    :param gamma: float; learning rate
+    :return: final weights vector and loss
+    """
+
+    w = initial_w
+    for n_iter in range(max_iters):
+        # retrieve gradient and cost
+        grd, e = compute_gradient_mse(y, tx, w)
+
+        # prepare the regularization factor
+        reg = np.sign(w) * (-1)
+
+        # update the weights
+        w = w - (grd + reg * LAMBDA) * gamma
+
+        # set small weights to 0
+        w[w < 0.005] = 0
+        # print(f"Step loss: {compute_mse(e)}")
+
+    # calculate the final loss
+    loss = compute_loss(y, tx, w, compute_mse) + np.sum(np.abs(w) * LAMBDA)
+
+    return w, loss
