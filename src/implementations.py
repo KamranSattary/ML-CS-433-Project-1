@@ -1,5 +1,5 @@
 import numpy as np
-from helpers import *
+from helpers import batch_iter
 
 def compute_mse(y, tx, w):
     
