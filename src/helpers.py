@@ -159,3 +159,35 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
 
         if start_index < end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
+            
+        
+def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):	
+    """	
+    L1 regularized linear regression = Lasso Regression	
+    :param y: (n,) array	
+    :param tx: (n,d) matrix	
+    :param intial_w: (d,) array; initial weights	
+    :param max_iters: int; number of iterations	
+    :param gamma: float; learning rate	
+    :return: final weights vector and loss	
+    """	
+
+    w = initial_w	
+    for n_iter in range(max_iters):	
+        # retrieve gradient and cost	
+        grd, e = compute_gradient_mse(y, tx, w)	
+
+        # prepare the regularization factor	
+        reg = np.sign(w) * (-1)	
+
+        # update the weights	
+        w = w - (grd + reg * LAMBDA) * gamma	
+
+        # set small weights to 0	
+        w[w < 0.005] = 0	
+        # print(f"Step loss: {compute_mse(e)}")	
+
+    # calculate the final loss	
+    loss = compute_mse(y, tx, w) + np.sum(np.abs(w) * LAMBDA)	
+
+    return w, loss
