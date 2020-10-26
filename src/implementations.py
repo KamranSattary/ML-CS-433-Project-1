@@ -201,6 +201,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             # update step
             w = w - gamma * grd
 
-    loss = nlog_likelihood(y, tx, w) + lambda_ * np.linalg.norm(w) ** 2
+    loss = nlog_likelihood(y, tx, w) 
 
     return w, loss
