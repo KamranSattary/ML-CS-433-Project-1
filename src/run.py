@@ -12,7 +12,7 @@ RESULT_PATH = '../data/infered.csv'
 # define best parameters found
 DEGREE = 13
 LAMBDA = 1e-20
-K_FOLD = 10
+K_FOLD = 7
 
 # for same k-fold
 SEED = 12
@@ -29,22 +29,20 @@ def set_lambda(val):
     LAMBDA = val
 
 
-def save_classif_percentage(tr, te):
+def save_classif_percentage(tr):
     """This function is used to save the percentage of good classification on the test and training dataset to the
     python notebook
     """
     global TR_ACCURACY
-    global TE_ACCURACY
 
     TR_ACCURACY = tr
-    TE_ACCURACY = te
 
 
 def ret_classif_percentage():
     """This function is used to rerurn the percentage of good classification on the test and training dataset to the
     python notebook
     """
-    return TR_ACCURACY, TE_ACCURACY
+    return TR_ACCURACY
 
 
 def get_normalization_methods(tX):
@@ -87,6 +85,18 @@ def prepare_labels(y, prev, new):
     return y
 
 
+def append_to_lists(lists, values):
+    for i in range(len(lists)):
+        lists[i].append(values[i].tolist())
+
+
+def average_lists(lists):
+    rets = []
+    for lis in lists:
+        rets.append(np.mean(lis, axis=0))
+    return rets
+
+
 def train(tX, y):
     """
     Train the model
@@ -96,29 +106,35 @@ def train(tX, y):
     """
     # Split the dataset k-fold
     k_indices = build_k_indices(len(y), K_FOLD, SEED)
-    training, testing = cross_validation(y, tX, k_indices, 3)
 
-    # build the polynomial fct
-    tx_tr = build_poly(training[0], DEGREE)
-    tx_te = build_poly(testing[0], DEGREE)
+    ws_tmp = []
+    loss_te_tmp = []
+    loss_tr_tmp = []
 
-    # Train the model
-    w, _ = ridge_regression(training[1], tx_tr, LAMBDA)
+    for k in range(K_FOLD):
+        training, testing = cross_validation(y, tX, k_indices, k)
 
-    # Compute loss
-    loss_tr = compute_mse(training[1], tx_tr, w)
-    loss_te = compute_mse(testing[1], tx_te, w)
+        # build the polynomial fct
+        tx_tr = build_poly(training[0], DEGREE)
+        tx_te = build_poly(testing[0], DEGREE)
 
-    print("Training set loss {}; test set loss {}".format(loss_tr, loss_te))
+        # Train the model
+        w, _ = ridge_regression(training[1], tx_tr, LAMBDA)
 
+        # Compute loss
+        loss_tr = compute_mse(training[1], tx_tr, w)
+        loss_te = compute_mse(testing[1], tx_te, w)
+
+        append_to_lists((ws_tmp, loss_tr_tmp, loss_te_tmp), (w, loss_tr, loss_te))
+
+    w, loss_tr, loss_te = average_lists((ws_tmp, loss_tr_tmp, loss_te_tmp))
+    tx_tr = build_poly(tX, DEGREE)
     # Compute misclassified
     pred_tr = predict(tx_tr, w)
-    pred_te = predict(tx_te, w)
 
-    good_tr = np.sum(np.equal(pred_tr, training[1])) / len(training[1])
-    good_te = np.sum(np.equal(pred_te, testing[1])) / len(testing[1])
-    save_classif_percentage(good_tr, good_te)
-    print("Training set good classification {}; test good classification {}".format(good_tr, good_te))
+    good_tr = np.sum(np.equal(pred_tr, y)) / len(tX)
+    save_classif_percentage(good_tr)
+    print("Training set good classification {}".format(good_tr))
 
     return w
 
