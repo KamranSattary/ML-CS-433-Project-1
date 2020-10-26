@@ -1,6 +1,6 @@
 """some helper functions."""
 import numpy as np
-from proj1_helpers import load_csv_data
+from implementations import compute_gradient_mse, compute_mse
 
 
 def build_poly(x, degree):
@@ -17,8 +17,6 @@ def build_poly(x, degree):
 
     return np.c_[np.ones(r.shape[0]), r]
 
-
-from implementations import compute_loss, compute_gradient_mse, compute_mse
 
 def build_k_indices(num_row, k_fold, seed):
 
@@ -120,60 +118,8 @@ def predict(tx, w):
     return y_pred
 
 
-def fill_nan_closure(x_fill, fill_method=np.nanmedian):
-    """
-    Replaces missing values given a method (mean, median) to use to calculate replacement
-    :param x_fill: matrix(n, d) matrix which NaNs should be filled
-    :param fill_method: string of function to use to find fill values, default np.nanmedian, supported are np.nanmedian
-    and np.nanmean
-    :return x: normalized with given method and nan-filled with given values, closure that knows the fill value for the
-    prediction set
-    """
-
-    fill_val = fill_method(x_fill, axis=0)
-
-    def fill_nan(x):
-        print(x.shape)
-        # Retrieve fill values, remember -999 is NaN
-        inds = np.where(x == -999)
-        x[inds] = np.nan
-
-        # Place column means in the indices. Align the arrays using take
-        x[inds] = np.take(fill_val, inds[1])
-
-        return x
-
-    return fill_nan
-
-
-def minmax_normalize_closure(xmax, xmin):
-    """
-    Normalizes matrix given max x and min x
-    :param xmax:
-    :param xmin:
-    :return: function that only takes x as argument
-    """
-    def minmax_normalize(x):
-        return (x - xmin) / (xmax - xmin)
-
-    return minmax_normalize
-
-
-def standardize_closure(mu, std):
-    """
-    Standardizes matrix given mean mu and standard deviation
-    :param mu:
-    :param std:
-    :return:
-    """
-    def standardize(x):
-        return (x - mu) / std
-
-    return standardize
-
-
 def predict_without_classifying(weights, data):
-    #"""Generates predictions (pre-classification via threshold!) given weights, and a test data matrix"""
+    """Generates predictions (pre-classification via threshold!) given weights, and a test data matrix"""
     y_pred = np.dot(data, weights)
 
     return y_pred
@@ -243,6 +189,6 @@ def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
         # print(f"Step loss: {compute_mse(e)}")
 
     # calculate the final loss
-    loss = compute_loss(y, tx, w, compute_mse) + np.sum(np.abs(w) * LAMBDA)
+    loss = compute_mse(y, tx, w) + np.sum(np.abs(w) * LAMBDA)
 
     return w, loss

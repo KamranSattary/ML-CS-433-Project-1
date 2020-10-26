@@ -106,8 +106,8 @@ def train(tX, y):
     w, _ = ridge_regression(training[1], tx_tr, LAMBDA)
 
     # Compute loss
-    loss_tr = compute_loss(training[1], tx_tr, w)
-    loss_te = compute_loss(testing[1], tx_te, w)
+    loss_tr = compute_mse(training[1], tx_tr, w)
+    loss_te = compute_mse(testing[1], tx_te, w)
 
     print("Training set loss {}; test set loss {}".format(loss_tr, loss_te))
 
