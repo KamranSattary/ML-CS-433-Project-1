@@ -24,7 +24,7 @@ Run in the terminal:
 python run.py
 ```
 
-Then the result should be in the `data` file in `sample-submission.csv`. 
+Then the result should be in the `data` file in `sample-submission.csv`. The `train.csv` and `test.csv` are expected to be unzipped and in the `/data/` folder 
 
 ### Data
 
