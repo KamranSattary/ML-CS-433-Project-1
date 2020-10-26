@@ -18,7 +18,7 @@ def build_poly(x, degree):
     return np.c_[np.ones(r.shape[0]), r]
 
 
-def build_k_indices(num_row, k_fold, seed):
+def build_k_indices(y, k_fold, seed):
 
     """
     Builds k index sets from input data
@@ -28,6 +28,7 @@ def build_k_indices(num_row, k_fold, seed):
     :return:
     """
 
+    num_row = y.shape[0]
     # set seed for reproducibility and jumble data
     np.random.seed(seed)
     indices = np.random.permutation(num_row)
