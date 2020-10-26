@@ -14,7 +14,6 @@ inds = np.where(x == -999)
 x[inds] = np.nan
 
 col_mean = np.nanmedian(x, axis=0)
-print(col_mean)
 
 #Find indices that you need to replace
 inds = np.where(np.isnan(x))
