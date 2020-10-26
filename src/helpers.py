@@ -2,6 +2,26 @@
 import numpy as np
 from implementations import compute_gradient_mse, compute_mse
 
+def normalize(x, col_mean=None, xmin=None, xmax=None):
+    inds = np.where(x == -999)
+    x[inds] = np.nan
+
+    if col_mean is None:
+        col_mean = np.nanmedian(x, axis=0)
+
+    #Find indices that you need to replace
+    inds = np.where(np.isnan(x))
+
+    #Place column means in the indices. Align the arrays using take
+    x[inds] = np.take(col_mean, inds[1])
+
+    if xmin is None:
+        xmin, xmax = np.min(x, axis=0), np.max(x, axis=0)
+
+    #Minmax normalization
+    x = (x - xmin) / (xmax-xmin)
+
+    return x, col_mean, xmin, xmax
 
 def build_poly(x, degree):
 

@@ -1,7 +1,7 @@
 import numpy as np
 from proj1_helpers import load_csv_data, predict_labels, create_csv_submission
 from implementations import ridge_regression
-from helpers import build_poly, build_k_indices
+from helpers import build_poly, build_k_indices, normalize
 
 DATA_PATH = '../data/'
 lambda_ = 1e-20
@@ -12,20 +12,7 @@ k_fold = 7
 # We work with the training data in this notebook
 y, x, ids = load_csv_data(DATA_PATH+'train.csv')
 
-inds = np.where(x == -999)
-x[inds] = np.nan
-
-col_mean = np.nanmedian(x, axis=0)
-
-#Find indices that you need to replace
-inds = np.where(np.isnan(x))
-
-#Place column means in the indices. Align the arrays using take
-x[inds] = np.take(col_mean, inds[1])
-
-#Minmax normalization
-xmin, xmax = np.min(x, axis=0), np.max(x, axis=0)
-x = (x - xmin) / (xmax-xmin)
+x, col_mean, xmin, xmax = normalize(x)
 
 def cross_validation(y, x, k_indices, k, lambda_, degree):
     
@@ -72,11 +59,7 @@ print(f'Average Missclassification proportion on test folds was {losses_te}. On 
 test_y, test_x, test_ids = load_csv_data(DATA_PATH + 'test.csv')
 
 # replace missing values with means determined from training data
-inds = np.where(test_x==-999)
-test_x[inds] = np.take(col_mean, inds[1])
-
-# minmax normalize again with parameters determined by train data
-test_x = (test_x - xmin) / (xmax-xmin)
+test_x, _, _, _ = normalize(test_x, col_mean, xmin, xmax)
 
 # create final predictions on testing data and submission csv
 y_pred = predict_labels(w, build_poly(test_x, degree))
