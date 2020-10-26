@@ -107,4 +107,4 @@ test_x = (test_x - xmin) / (xmax-xmin)
 
 # create final predictions on testing data and submission csv
 y_pred = predict_labels(w, build_poly(test_x, degree))
-create_csv_submission(test_ids, y_pred, DATA_FOLDER+'inferred.csv')
+create_csv_submission(test_ids, y_pred, DATA_PATH+'inferred.csv')
