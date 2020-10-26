@@ -11,7 +11,7 @@ RESULT_PATH = 'data/infered.csv'
 
 # define best parameters found
 DEGREE = 13
-LAMBDA = 5e-20
+LAMBDA = 1e-20
 K_FOLD = 10
 
 # for same k-fold
