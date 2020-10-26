@@ -2,6 +2,15 @@
 
 [Full assignment guideline pdf here](https://github.com/epfml/ML_course/blob/master/projects/project1/project1_description.pdf)
 
+## Report
+
+Here is our report in pdf format: [KLR_Report.pdf](KLR_Report.pdf)
+
+## Team
+
+- Kamran Nejad-Sattary (kamran.nejad-sattary@epfl.ch)
+- Razvan Mocan (razvan-florin.mocan@epfl.ch)
+- Loïc Busson (loic.busson@epfl.ch)
 
 ## Organisation
 
@@ -63,13 +72,3 @@ python run.py
 ```
 
 Then the result should be in the `data` file in `sample-submission.csv`. 
-
-## Report
-
-Here is our report in pdf format: [KLR_Report.pdf](KLR_Report.pdf)
-
-## Team
-
-- Kamran Nejad-Sattary (kamran.nejad-sattary@epfl.ch)
-- Razvan Mocan (razvan-florin.mocan@epfl.ch)
-- Loïc Busson (loic.busson@epfl.ch)
