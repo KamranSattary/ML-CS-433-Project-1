@@ -18,13 +18,13 @@ There are three folders : `data`, `src` and `plot`
 
 ## Recreate final solution
 
-Run in the terminal:
+Run in the terminal (while CWD is inside `/src/`):
 
 ```
 python run.py
 ```
 
-Then the result should be in the `data` file in `sample-submission.csv`. The `train.csv` and `test.csv` are expected to be unzipped and in the `/data/` folder 
+Then the result should be in the `data` file in `sample-submission.csv`. The `train.csv` and `test.csv` are expected to be unzipped and in the `/data/` folder. 
 
 ### Data
 
