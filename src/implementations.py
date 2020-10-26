@@ -1,5 +1,39 @@
 import numpy as np
-import helpers
+
+def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
+    """
+    Generate a minibatch iterator for a dataset.
+    :param y: (n,) array - labels
+    :param tx: (n,d) matrix - inputs
+    :param batch_size: int
+    :param num_batches: int; number of batches
+    :param shuffle: boolean; shuffle the dataset or not to avoid ordering in the original data messing with the
+    randomness of the minibatches
+    :return: final weights vector and loss
+    :return: an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
+    Example of use :
+    for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
+        <DO-SOMETHING>
+    """
+
+    data_size = len(y)
+
+    # If !shuffle; easier for processor as branching takes a lot of time
+    shuffled_y = y
+    shuffled_tx = tx
+
+    if shuffle:
+        # If permutation param is an integer, randomly permute ``np.arange(param)``
+        shuffle_indices = np.random.permutation(data_size)
+        shuffled_y = shuffled_y[shuffle_indices]
+        shuffled_tx = shuffled_tx[shuffle_indices]
+
+    for batch_num in range(num_batches):
+        start_index = batch_num * batch_size
+        end_index = min((batch_num + 1) * batch_size, data_size)
+
+        if start_index < end_index:
+            yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 def compute_mse(y, tx, w):
     
