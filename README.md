@@ -48,6 +48,7 @@ In the `src` folder you will find our code.
 - `implementations.py` contains multiple functions used in our model. You will find (among other functions that we used for training our model) the `least_squares_GD(y, tx, initial_w, max_iters, gamma)`, `least_squares_SGD(y, tx, initial_w, max_iters, gamma)`, `least_squares(y, tx)`, `ridge_regression(y, tx, lambda_)`, `logistic_regression(y, tx, initial_w, max_iters, gamma)`, `reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)` required.
 - `helpers.py` contains our own useful functions used to handle the data. The provided `proj1_helpers.py` has been left untouched.
 - `Visualising Ridge Tuning.ipynb` is the notebook that allowed us to create most of the plots in the folder `plots`, with `select_best_lambda.ipynb` producing the best lambda plot and tuning the lambda. You will find explanations concerning our findings and our thought process in it.
+- `Numpy deep neural network.ipynb` contains our attempt at the Neural Network which gave a scored accuracy of 80.0%
 
 ## Data preparation
 
