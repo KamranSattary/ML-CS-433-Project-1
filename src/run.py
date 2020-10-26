@@ -1,5 +1,7 @@
 import numpy as np
 from proj1_helpers import load_csv_data, predict_labels, create_csv_submission
+from implementations import ridge_regression
+from helpers import build_poly, build_k_indices
 
 DATA_PATH = '../data/'
 lambda_ = 1e-20
@@ -25,34 +27,6 @@ x[inds] = np.take(col_mean, inds[1])
 xmin, xmax = np.min(x, axis=0), np.max(x, axis=0)
 x = (x - xmin) / (xmax-xmin)
 
-def build_poly(x, degree):
-
-    """
-    Builds polynomial augmented dataset
-    :param x: 
-    :param degree: 
-    :return:
-    """
-    r = x.copy()
-    for deg in range (2,degree+1):
-        r = np.c_[r, np.power(x, deg)]
-        
-    return np.c_[np.ones(r.shape[0]), r]
-
-def build_k_indices(y, k_fold, seed):
-    num_row = y.shape[0]
-    interval = int(num_row/k_fold)
-    np.random.seed(seed)
-    indices = np.random.permutation(num_row)
-    k_indices = [indices[k*interval: (k+1) * interval] for k in range (k_fold)]
-    return np.array(k_indices)
-
-def ridge_regression(y, tx, lambda_):
-    aI = 2 * tx.shape[0] * lambda_ * np.identity(tx.shape[1])
-    a = tx.T.dot(tx) + aI
-    b = tx.T.dot(y)
-    return np.linalg.solve(a,b)
-
 def cross_validation(y, x, k_indices, k, lambda_, degree):
     
     te_indice = k_indices[k]
@@ -64,7 +38,7 @@ def cross_validation(y, x, k_indices, k, lambda_, degree):
     tx_tr = build_poly(x_tr, degree)
     tx_te = build_poly(x_te, degree)
     
-    w = ridge_regression(y_tr, tx_tr, lambda_)
+    w, _ = ridge_regression(y_tr, tx_tr, lambda_)
     
     y_tr_pred = predict_labels(w, tx_tr)
     y_te_pred = predict_labels(w, tx_te)
@@ -107,4 +81,4 @@ test_x = (test_x - xmin) / (xmax-xmin)
 # create final predictions on testing data and submission csv
 y_pred = predict_labels(w, build_poly(test_x, degree))
 create_csv_submission(test_ids, y_pred, DATA_PATH+'inferred.csv')
-print('Your submission is called /data/inferred.csv')
+print('Your final submission has been created and is called /data/inferred.csv')
