@@ -1,7 +1,5 @@
 import numpy as np
-from helpers import build_poly, build_k_indices, fill_nan_closure, minmax_normalize_closure, standardize_closure
 from proj1_helpers import load_csv_data, predict_labels, create_csv_submission
-from implementations import ridge_regression 
 
 DATA_PATH = '../data/'
 lambda_ = 1e-20
