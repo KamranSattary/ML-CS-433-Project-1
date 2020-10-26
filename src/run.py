@@ -73,18 +73,6 @@ def normalize_data(tX, methods):
     return tX
 
 
-def prepare_labels(y, prev, new):
-    """
-    The training algorithm expects the label to be 0 or 1 while the verification algorithm expect them to be -1 and 1.
-    This method converts them back anf forth
-    :param y: array(n) - labels
-    :param prev: int - labels that need to be changed
-    :param new: int - the new value
-    """
-    y[y == prev] = new
-    return y
-
-
 def append_to_lists(lists, values):
     for i in range(len(lists)):
         lists[i].append(values[i].tolist())
@@ -122,17 +110,16 @@ def train(tX, y):
         w, _ = ridge_regression(training[1], tx_tr, LAMBDA)
 
         # Compute loss
-        loss_tr = compute_mse(training[1], tx_tr, w)
-        loss_te = compute_mse(testing[1], tx_te, w)
+        pred_tr = predict(tx_tr, w)
+        pred_te = predict(tx_te, w)
+
+        loss_tr = np.sum(np.equal(pred_tr, training[1])) / len(pred_tr)
+        loss_te = np.sum(np.equal(pred_te, testing[1])) / len(pred_te)
 
         append_to_lists((ws_tmp, loss_tr_tmp, loss_te_tmp), (w, loss_tr, loss_te))
 
-    w, loss_tr, loss_te = average_lists((ws_tmp, loss_tr_tmp, loss_te_tmp))
-    tx_tr = build_poly(tX, DEGREE)
-    # Compute misclassified
-    pred_tr = predict(tx_tr, w)
+    w, good_tr, good_te = average_lists((ws_tmp, loss_tr_tmp, loss_te_tmp))
 
-    good_tr = np.sum(np.equal(pred_tr, y)) / len(tX)
     save_classif_percentage(good_tr)
     print("Training set good classification {}".format(good_tr))
 
@@ -148,7 +135,6 @@ def save_predict(tX, w, inds):
     "return None
     """
     pred = predict(build_poly(tX, DEGREE), w)
-    pred = prepare_labels(pred, 0, -1)
 
     create_csv_submission(inds, pred, args.result_path)
 
