@@ -175,7 +175,7 @@ def lasso_reg(y, tx, initial_w, max_iters, gamma, LAMBDA):
     w = initial_w	
     for n_iter in range(max_iters):	
         # retrieve gradient and cost	
-        grd, e = compute_gradient_mse(y, tx, w)	
+        grd = compute_gradient_mse(y, tx, w)	
 
         # prepare the regularization factor	
         reg = np.sign(w) * (-1)	
